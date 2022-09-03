@@ -30,7 +30,7 @@ const
   //WebServiceUrl : string = 'https://us-central1-sils-stage.cloudfunctions.net/handlerViajesYpfGas';  Testing
                               
   
-  WebServiceUrl : string = 'https://us-central1-sils-ypf.cloudfunctions.net/handlerViajesYpfGas';  // Producción
+  WebServiceUrl : string = 'https://us-central1-sils-ypf.cloudfunctions.net/handlerViajesYpfGas';  // ProducciÃ³n
 
 
 var
@@ -65,7 +65,7 @@ begin
   try
     datosEnviados := EnviarDataWebService(json);
     if not datosEnviados then begin
-      showmessage('el webservice no retornó OK');                                
+      showmessage('el webservice no retornÃ³ OK');                                
     end;
   except on E : Exception do begin
     showmessage('error al enviar los datos al webservice: ' + E.Message);
@@ -73,7 +73,7 @@ begin
   end;
   
 
-  showmessage('Envío 0k');
+  showmessage('EnvÃ­o 0k');
   
 end;
 

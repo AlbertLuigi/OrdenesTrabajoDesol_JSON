@@ -49,8 +49,8 @@ object Form1: TForm1
   end
   object DataSourceQueryConsultaPedidos: TDataSource
     DataSet = QueryConsultaPedidos
-    Left = 816
-    Top = 256
+    Left = 824
+    Top = 232
   end
   object ConexionLocal: TMSConnection
     Database = 'YPFGas_HH'
@@ -68,8 +68,8 @@ object Form1: TForm1
     Connection = ConexionLocal
     SQL.Strings = (
       '')
-    Left = 752
-    Top = 320
+    Left = 824
+    Top = 288
   end
   object QueryConsultaPedidos: TMSQuery
     Connection = ConexionLocal
@@ -143,7 +143,7 @@ object Form1: TForm1
     Options.QueryIdentity = False
     Options.FullRefresh = True
     Options.LocalMasterDetail = True
-    Left = 824
-    Top = 374
+    Left = 168
+    Top = 46
   end
 end
