@@ -2,13 +2,13 @@ program TrackeoPedidos;
 
 uses
   Vcl.Forms,
-  InterfacePedidos in 'InterfacePedidos.pas' {Form1};
+  InterfacePedidos in 'InterfacePedidos.pas' {FormTrackeopedidos};
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TFormTrackeopedidos, FormTrackeopedidos);
   Application.Run;
 end.
