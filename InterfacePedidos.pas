@@ -11,7 +11,7 @@ uses
   IdBaseComponent, IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, IdSSL,
   IdSSLOpenSSL, cxGraphics, cxLookAndFeels, cxLookAndFeelPainters, Vcl.Menus,
   cxButtons,System.Types, System.IOUtils, StrUtils, Data.Bind.Components,
-  Data.Bind.ObjectScope;
+  Data.Bind.ObjectScope ;
 
 type
   TFormTrackeopedidos = class(TForm)
@@ -54,7 +54,7 @@ const
  // WebServiceUrl : string = 'https://us-central1-sils-stage.cloudfunctions.net/handlerViajesYpfGas';  //Testing
                               
   
-      WebServiceUrl : string = 'https://us-central1-sils-ypf.cloudfunctions.net/handlerViajesYpfGas';  // Producción
+      WebServiceUrl : string = 'https://us-central1-sils-ypf.cloudfunctions.net/handlerViajesYpfGass';  // Producción
 
 
 var
@@ -223,7 +223,8 @@ begin
                                    if Contador <= CantidadReintentos then  begin
 
                                       EnvioDeEmail('Probable error en el response. Reintentando...')  ;
-                                      sleep(120000)  ;                                     
+                                      sleep(5000)  ;   
+                                      //sleep(120000)  ;                                   
                                       Continue
                  
                                    end;
@@ -328,17 +329,17 @@ begin
  
   try
   
-    client := TRESTClient.Create(nil);   
-    client.BaseURL := WebServiceUrl ;   
-    request := TRESTRequest.Create(client);  
-    request.Method := TRESTRequestMethod.rmPost;  
-    request.AddBody(json, ctAPPLICATION_JSON);  
-    
-    request.Execute;
-
-    
+  
     try
+       client := TRESTClient.Create(nil);   
+       client.BaseURL := WebServiceUrl ;   
+       client.RaiseExceptionOn500 := true;
+       request := TRESTRequest.Create(client);  
+       request.Method := TRESTRequestMethod.rmPost;  
+       request.AddBody(json, ctAPPLICATION_JSON);  
     
+       request.Execute;
+
        //raise Exception.Create('el response salio para el orto');
        Result := request.Response.StatusCode = 200;
        
@@ -351,10 +352,8 @@ begin
 
     end;
 
-    
-  
   finally
- 
+  
     request.Free;
     client.Free;
     
@@ -493,6 +492,8 @@ procedure TFormTrackeopedidos.ServidorSMTPFailedRecipient(Sender: TObject; const
 begin
 
           VContinue := true ;
+
+         
 
 end;
 

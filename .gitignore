@@ -1,2 +1,9 @@
-/Win32/Debug/
-__history 
+Win32/
+Querys/
+__history/
+*.exe
+*.tmp
+*.dcu
+*.sql
+__recovery/
+MonitoreaEjecucionTrackeo/
