@@ -1,4 +1,4 @@
-UNIT OrdenesTrabajoDesol;
+ÔªøUNIT OrdenesTrabajoDesol;
 
 INTERFACE
 
@@ -56,8 +56,8 @@ CONST
   //WebServiceUrl : string = 'https://jsonplaceholder.typicode.com/posts';
  // WebServiceUrl : string = 'https://us-central1-sils-stage.cloudfunctions.net/handlerViajesYpfGas';  //Testing
 
-      //WebServiceUrl: STRING = 'https://ypfglpapi.desol.com.ar/ot/importar';  // ProducciÛn anterior
-      WebServiceUrl: STRING = 'https://legajotecnicoapi.ypfgas.com.ar/ot/importar';  // ProducciÛn
+      //WebServiceUrl: STRING = 'https://ypfglpapi.desol.com.ar/ot/importar';  // Producci√≥n anterior
+      WebServiceUrl: STRING = 'https://legajotecnicoapi.ypfgas.com.ar/ot/importar';  // Producci√≥n
 
      
 
@@ -85,7 +85,7 @@ BEGIN
 
             TRY
      
-           // Obtiene par·metros y asigna el valor a variables
+           // Obtiene par√°metros y asigna el valor a variables
 
                   ConfigLines := TFile.ReadAllLines(ExtractFilePath(ParamStr(0)) + 'EmailConfig.ini');
                   // ConfigLines := TFile.ReadAllLines('EmailConfig.ini');
@@ -104,7 +104,7 @@ BEGIN
             EXCEPT
                   ON E: Exception DO BEGIN
 
-                        TextoMensaje := 'Error en la asignaciÛn de par·metros para el envÌo de emails.  ' + E.Message;
+                        TextoMensaje := 'Error en la asignaci√≥n de par√°metros para el env√≠o de emails.  ' + E.Message;
                         ShowMessage(TextoMensaje);
                         TerminateProcess(GetCurrentProcess(), 0);
                         exit;
@@ -162,7 +162,7 @@ BEGIN
                         json := CrearJSON(FormOrdenesDesol.QueryConsultaOrdenesTrabajo);
                        // FormOrdenesDesol.mmo1.lines.text := json;     // Muestra el resultado del jSON en el campo MEMO1
                        // Application.ProcessMessages;
-	                    { Poner el sleep ac·... }
+	                    { Poner el sleep ac√°... }
                         Sleep(500);
                         //EnvioDeEmail(FormOrdenesDesol.QueryConsultaOrdenesTrabajo['IDIncidencia']) ;
                         EnviarDataWebService(json);
@@ -179,7 +179,7 @@ BEGIN
             EXCEPT
                   ON E: Exception DO BEGIN
 
-                        TextoMensaje := 'Error en la ejecuciÛn de la Query que retorna el JSON.  ' + E.Message;
+                        TextoMensaje := 'Error en la ejecuci√≥n de la Query que retorna el JSON.  ' + E.Message;
                         EnvioDeEmail(TextoMensaje);
 
                         TerminateProcess(GetCurrentProcess(), 0);
@@ -217,7 +217,7 @@ BEGIN
             EXCEPT
                   ON E: Exception DO BEGIN
                         ErrorUpdate := 'Error';
-                        TextoMensaje := 'Error al actualizar la fecha de ˙ltima ejecuciÛn en la tabla de par·metros:  ' + E.Message;
+                        TextoMensaje := 'Error al actualizar la fecha de √∫ltima ejecuci√≥n en la tabla de par√°metros:  ' + E.Message;
                         EnvioDeEmail(TextoMensaje);
                         TerminateProcess(GetCurrentProcess(), 0);
                         exit;
@@ -262,7 +262,7 @@ BEGIN
 
                   BEGIN
 
-                        Saludo := 'Buenos dÌas';
+                        Saludo := 'Buenos d√≠as';
 
                   END;
 
@@ -295,11 +295,11 @@ BEGIN
       FormOrdenesDesol.MensajeSMTP.Clear;
       FormOrdenesDesol.MensajeSMTP.Body.Clear;
       FormOrdenesDesol.MensajeSMTP.Priority := TIdMessagePriority(mpHighest); //prioridad del mensaje
-      FormOrdenesDesol.MensajeSMTP.Subject := 'Reporte de envÌo de Ordenes de Trabajo a Desol - Proyecto DigitalizaciÛn de Legajos TÈcnicos';
+      FormOrdenesDesol.MensajeSMTP.Subject := 'Reporte de env√≠o de Ordenes de Trabajo a Desol - Proyecto Digitalizaci√≥n de Legajos T√©cnicos';
       FormOrdenesDesol.MensajeSMTP.Body.Text := ('          ' + Saludo + slinebreak + slinebreak);
       //FormOrdenesDesol.MensajeSMTP.Body.Add(Saludo);
-      FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'Este es un informe autom·tico generado por el sistema.' + slinebreak);
-      FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'A continuaciÛn se listan los distintos tipos de errores detectados.' + slinebreak);
+      FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'Este es un informe autom√°tico generado por el sistema.' + slinebreak);
+      FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'A continuaci√≥n se listan los distintos tipos de errores detectados.' + slinebreak);
       FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'Atentamente.');
       FormOrdenesDesol.MensajeSMTP.Body.Add(slinebreak + slinebreak);
       
@@ -333,13 +333,13 @@ BEGIN
             END;
             
             
-       // Log de errores crÌticos (403, 404, 500)
+       // Log de errores cr√≠ticos (403, 404, 500)
 
             IF Trim(FormOrdenesDesol.mmoLogErroresCriticos.Text) <> '' THEN BEGIN
 
-                  FormOrdenesDesol.MensajeSMTP.Body.Add('Errores CrÌticos (403, 404, 500):');
+                  FormOrdenesDesol.MensajeSMTP.Body.Add('Errores Cr√≠ticos (403, 404, 500):');
                   FormOrdenesDesol.MensajeSMTP.Body.AddStrings(FormOrdenesDesol.mmoLogErroresCriticos.Lines);
-                  RutaArchivo := GuardarMemoComoArchivo(FormOrdenesDesol.mmoLogErroresCriticos, 'Errores CrÌticos');
+                  RutaArchivo := GuardarMemoComoArchivo(FormOrdenesDesol.mmoLogErroresCriticos, 'Errores Cr√≠ticos');
                   Adj := TIdAttachmentFile.Create(FormOrdenesDesol.MensajeSMTP.MessageParts, RutaArchivo);
 
             END;
@@ -347,14 +347,14 @@ BEGIN
       END
       ELSE BEGIN
 
-            FormOrdenesDesol.MensajeSMTP.Body.Add('Errores CrÌticos del Sistema' + slinebreak);
+            FormOrdenesDesol.MensajeSMTP.Body.Add('Errores Cr√≠ticos del Sistema' + slinebreak);
             FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + TextoMensaje);
       END;
 
                                     
-                //FormOrdenesDesol.MensajeSMTP.From.Address := 'albertociancio2018@gmail.com' ;  //quien envÌa el email
-      FormOrdenesDesol.MensajeSMTP.From.Address := SmtpRemitente;  //quien envÌa el email
-      FormOrdenesDesol.MensajeSMTP.From.Name := 'Reporte de envÌo de Ordenes de Trabajo a Desol - Proyecto DigitalizaciÛn de Legajos TÈcnicos';  // texto que se antepone al remitente
+                //FormOrdenesDesol.MensajeSMTP.From.Address := 'albertociancio2018@gmail.com' ;  //quien env√≠a el email
+      FormOrdenesDesol.MensajeSMTP.From.Address := SmtpRemitente;  //quien env√≠a el email
+      FormOrdenesDesol.MensajeSMTP.From.Name := 'Reporte de env√≠o de Ordenes de Trabajo a Desol - Proyecto Digitalizaci√≥n de Legajos T√©cnicos';  // texto que se antepone al remitente
       FormOrdenesDesol.MensajeSMTP.Recipients.EMailAddresses := SmtpDestinatario; // 'alberto.ciancio@ypf.com'  ;  //AsignacionesActivasEmailJefe.EditValue ;    //Destinatario
       FormOrdenesDesol.ServidorSMTP.Connect;
       FormOrdenesDesol.ServidorSMTP.Send(FormOrdenesDesol.MensajeSMTP);
@@ -407,10 +407,10 @@ BEGIN
 
                   IF request.Response.StatusCode = 200 THEN BEGIN
                         Result := True;
-                        Break; // …xito, salir del ciclo
+                        Break; // √âxito, salir del ciclo
                   END
                   ELSE IF request.Response.StatusCode = 400 THEN BEGIN
-                        IF Content.Contains('No se encontrÛ el cliente') THEN BEGIN
+                        IF Content.Contains('No se encontr√≥ el cliente') THEN BEGIN
 
                               TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
                                     Content, NroIncidencia, Cliente, Planta, NroOrden]);
@@ -443,7 +443,7 @@ BEGIN
                               Sleep(1000); // Esperar 1 segundo antes de reintentar
                   END
                   ELSE BEGIN
-             // Otro error no contemplado explÌcitamente
+             // Otro error no contemplado expl√≠citamente
 
                         TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
                               Content, NroIncidencia, Cliente, Planta, NroOrden]);
@@ -456,7 +456,7 @@ BEGIN
 
             EXCEPT
                   ON E: Exception DO BEGIN
-                        TextoMensaje := 'ExcepciÛn al enviar JSON: ' + E.Message;
+                        TextoMensaje := 'Excepci√≥n al enviar JSON: ' + E.Message;
 
                         TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
                               Content, NroIncidencia, Cliente, Planta, NroOrden]);
@@ -504,7 +504,7 @@ BEGIN
             objects := objects + '"' + fieldName + '":' + finalValue + ',';
       END;
 
-      SetLength(objects, length(objects) - 1); { Borramos la ˙ltima coma al final }
+      SetLength(objects, length(objects) - 1); { Borramos la √∫ltima coma al final }
       objects := objects + '}'; {+  AnsiString(#13#10);}
 
       Result := objects;
@@ -627,7 +627,7 @@ BEGIN
        // Convertir timestamp del archivo a TDateTime
                   FechaArchivo := FileDateToDateTime(SR.Time);
 
-       // Si es m·s viejo que los dÌas indicados, se elimina
+       // Si es m√°s viejo que los d√≠as indicados, se elimina
                   IF FechaActual - FechaArchivo > DiasAntiguedad THEN BEGIN
                         DeleteFile(Archivo);
                   END;
