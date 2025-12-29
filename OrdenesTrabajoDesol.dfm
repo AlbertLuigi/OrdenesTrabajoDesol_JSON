@@ -63,6 +63,16 @@ object FormOrdenesDesol: TFormOrdenesDesol
       'mmo1')
     TabOrder = 4
   end
+  object mmoLogExitos: TMemo
+    Left = 56
+    Top = 28
+    Width = 633
+    Height = 73
+    Lines.Strings = (
+      'mmo1')
+    TabOrder = 5
+    Visible = False
+  end
   object Script: TMSSQL
     Connection = ConexionServidor
     SQL.Strings = (

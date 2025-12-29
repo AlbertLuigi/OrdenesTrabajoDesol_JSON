@@ -25,6 +25,7 @@ TYPE
             mmoLog400NoCliente: TMemo;
             mmoLog400Otro: TMemo;
             mmoLogErroresCriticos: TMemo;
+            mmoLogExitos: TMemo;
 
             PROCEDURE ServidorSMTPFailedRecipient(Sender: TObject; CONST AAddress, ACode, AText: STRING; VAR VContinue: Boolean);
 
@@ -47,6 +48,10 @@ PROCEDURE EnvioDeEmail(Mensaje: STRING);
 PROCEDURE AgregarMensajeConSeparador(LogMemo: TMemo; CONST Mensaje: STRING);
 
 FUNCTION GuardarMemoComoArchivo(CONST Memo: TMemo; CONST Identificador: STRING): STRING;
+
+FUNCTION NormalizarContenido(CONST Content: STRING): STRING;
+
+FUNCTION ContarRegistrosMemo(LogMemo: TMemo): Integer;
 
 PROCEDURE EliminarArchivosTemporalesViejos(DiasAntiguedad: Integer);
 
@@ -153,6 +158,7 @@ BEGIN
                   FormOrdenesDesol.mmoLog400NoCliente.Clear;
                   FormOrdenesDesol.mmoLog400Otro.Clear;
                   FormOrdenesDesol.mmoLogErroresCriticos.Clear;
+                  FormOrdenesDesol.mmoLogExitos.Clear;
 
                   FormOrdenesDesol.QueryConsultaOrdenesTrabajo.Active := true;
                   FormOrdenesDesol.QueryConsultaOrdenesTrabajo.First;
@@ -170,8 +176,8 @@ BEGIN
                         FormOrdenesDesol.QueryConsultaOrdenesTrabajo.Next;
                   END;
 
-                  IF (Trim(FormOrdenesDesol.mmoLog400NoCliente.Text) <> '') OR (Trim(FormOrdenesDesol.mmoLog400Otro.Text) <> '') OR (Trim(FormOrdenesDesol.mmoLogErroresCriticos.Text)
-                        <> '') THEN BEGIN
+                  IF (Trim(FormOrdenesDesol.mmoLog400NoCliente.Text) <> '') OR (Trim(FormOrdenesDesol.mmoLog400Otro.Text) <> '') OR (Trim(FormOrdenesDesol.mmoLogErroresCriticos.Text) <> '')
+                        OR (Trim(FormOrdenesDesol.mmoLogExitos.Text) <> '') THEN BEGIN
 
                         EnvioDeEmail(TextoMensaje);
                   END;
@@ -254,7 +260,7 @@ VAR
       RutaArchivo: STRING;
 BEGIN
 
-      DecodeTime(time, Hora, minuto, segundo, milisegundo);
+      DecodeTime(Now, Hora, minuto, segundo, milisegundo);
 
       CASE Hora OF
 
@@ -299,7 +305,7 @@ BEGIN
       FormOrdenesDesol.MensajeSMTP.Body.Text := ('          ' + Saludo + slinebreak + slinebreak);
       //FormOrdenesDesol.MensajeSMTP.Body.Add(Saludo);
       FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'Este es un informe automático generado por el sistema.' + slinebreak);
-      FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'A continuación se listan los distintos tipos de errores detectados.' + slinebreak);
+      FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'A continuación se listan los envíos exitosos y los distintos tipos de errores detectados.' + slinebreak);
       FormOrdenesDesol.MensajeSMTP.Body.Add('          ' + 'Atentamente.');
       FormOrdenesDesol.MensajeSMTP.Body.Add(slinebreak + slinebreak);
       
@@ -311,6 +317,16 @@ BEGIN
       
          
           
+        // Log de envíos exitosos
+            IF Trim(FormOrdenesDesol.mmoLogExitos.Text) <> '' THEN BEGIN
+
+                  FormOrdenesDesol.MensajeSMTP.Body.Add(Format('Órdenes enviadas exitosamente: %d órdenes', [ContarRegistrosMemo(FormOrdenesDesol.mmoLogExitos)]));
+                  FormOrdenesDesol.MensajeSMTP.Body.AddStrings(FormOrdenesDesol.mmoLogExitos.Lines);
+                  RutaArchivo := GuardarMemoComoArchivo(FormOrdenesDesol.mmoLogExitos, 'Ordenes Enviadas Exitosamente');
+                  Adj := TIdAttachmentFile.Create(FormOrdenesDesol.MensajeSMTP.MessageParts, RutaArchivo);
+
+            END;
+
         // Log de errores 400 sin cliente
             IF Trim(FormOrdenesDesol.mmoLog400NoCliente.Text) <> '' THEN BEGIN
                  // FormOrdenesDesol.MensajeSMTP.Body.Add('Errores 400 - Cliente no encontrado:');
@@ -337,7 +353,7 @@ BEGIN
 
             IF Trim(FormOrdenesDesol.mmoLogErroresCriticos.Text) <> '' THEN BEGIN
 
-                  FormOrdenesDesol.MensajeSMTP.Body.Add('Errores Críticos (403, 404, 500):');
+                  FormOrdenesDesol.MensajeSMTP.Body.Add(Format('Errores Críticos (403, 404, 500): %d órdenes', [ContarRegistrosMemo(FormOrdenesDesol.mmoLogErroresCriticos)]));
                   FormOrdenesDesol.MensajeSMTP.Body.AddStrings(FormOrdenesDesol.mmoLogErroresCriticos.Lines);
                   RutaArchivo := GuardarMemoComoArchivo(FormOrdenesDesol.mmoLogErroresCriticos, 'Errores Críticos');
                   Adj := TIdAttachmentFile.Create(FormOrdenesDesol.MensajeSMTP.MessageParts, RutaArchivo);
@@ -374,7 +390,7 @@ FUNCTION enviarDataWebService(json: STRING): boolean;
 VAR
       client: TRESTClient;
       request: TRESTRequest;
-      Content, TextoMensaje: STRING;
+      Content, TextoMensaje, MensajeRespuesta: STRING;
       NroIncidencia, Cliente, Planta, NroOrden: STRING;
       Intentos: SmallInt;
 CONST
@@ -406,6 +422,13 @@ BEGIN
                   NroOrden := IntToStr(FormOrdenesDesol.QueryConsultaOrdenesTrabajo['IdOtSap']);
 
                   IF request.Response.StatusCode = 200 THEN BEGIN
+                        MensajeRespuesta := NormalizarContenido(request.Response.StatusText);
+                        IF MensajeRespuesta = '' THEN
+                              MensajeRespuesta := 'Orden importada correctamente';
+
+                        TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
+                              MensajeRespuesta, NroIncidencia, Cliente, Planta, NroOrden]);
+                        AgregarMensajeConSeparador(FormOrdenesDesol.mmoLogExitos, TextoMensaje);
                         Result := True;
                         Break; // Éxito, salir del ciclo
                   END
@@ -413,7 +436,7 @@ BEGIN
                         IF Content.Contains('No se encontró el cliente') THEN BEGIN
 
                               TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
-                                    Content, NroIncidencia, Cliente, Planta, NroOrden]);
+                                    NormalizarContenido(Content), NroIncidencia, Cliente, Planta, NroOrden]);
  
                               //FormOrdenesDesol.mmoLog400NoCliente.Lines.Add(TextoMensaje);
                               AgregarMensajeConSeparador(FormOrdenesDesol.mmoLog400NoCliente, TextoMensaje);
@@ -424,7 +447,7 @@ BEGIN
                         ELSE BEGIN
 
                               TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
-                                    Content, NroIncidencia, Cliente, Planta, NroOrden]);
+                                    NormalizarContenido(Content), NroIncidencia, Cliente, Planta, NroOrden]);
 
                               AgregarMensajeConSeparador(FormOrdenesDesol.mmoLog400Otro, TextoMensaje);
                               //FormOrdenesDesol.mmoLog400Otro.Lines.Add(TextoMensaje);
@@ -435,12 +458,15 @@ BEGIN
                   ELSE IF (request.Response.StatusCode = 403) OR (request.Response.StatusCode = 404) OR (request.Response.StatusCode = 500) THEN BEGIN
 
                         TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
-                              Content, NroIncidencia, Cliente, Planta, NroOrden]);
+                              NormalizarContenido(Content), NroIncidencia, Cliente, Planta, NroOrden]);
 
-                        AgregarMensajeConSeparador(FormOrdenesDesol.mmoLogErroresCriticos, TextoMensaje);
-                        //FormOrdenesDesol.mmoLogErroresCriticos.Lines.Add(TextoMensaje);
-                        IF (Intentos < 3) THEN
-                              Sleep(1000); // Esperar 1 segundo antes de reintentar
+                        IF Intentos >= 3 THEN BEGIN
+                              AgregarMensajeConSeparador(FormOrdenesDesol.mmoLogErroresCriticos, TextoMensaje);
+                              Break; // Registrar una sola vez por OT al finalizar los reintentos
+                        END
+                        ELSE BEGIN
+                              Sleep(1000); // Esperar 1 segundo antes de reintentar sin duplicar registros
+                        END;
                   END
                   ELSE BEGIN
              // Otro error no contemplado explícitamente
@@ -459,10 +485,7 @@ BEGIN
                         TextoMensaje := 'Excepción al enviar JSON: ' + E.Message;
 
                         TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
-                              Content, NroIncidencia, Cliente, Planta, NroOrden]);
-                        TextoMensaje := Format('Status %d - Mensaje: %s - Datos: Incidencia: %s - Cliente: %s - Planta: %s - Orden: %s', [Integer(request.Response.StatusCode),
-                              Content, NroIncidencia, Cliente, Planta, NroOrden]);
-
+                              NormalizarContenido(Content), NroIncidencia, Cliente, Planta, NroOrden]);
                         AgregarMensajeConSeparador(FormOrdenesDesol.mmoLogErroresCriticos, TextoMensaje);
                         //FormOrdenesDesol.mmoLogErroresCriticos.Lines.Add(TextoMensaje);
                         //EnvioDeEmail(TextoMensaje);
@@ -606,6 +629,26 @@ BEGIN
             ;
             Memo.Lines.SaveToFile(Archivo);
             Result := Archivo;
+      END;
+END;
+
+FUNCTION NormalizarContenido(CONST Content: STRING): STRING;
+BEGIN
+      Result := Trim(StringReplace(StringReplace(Content, #13#10, ' ', [rfReplaceAll]), #10, ' ', [rfReplaceAll]));
+      WHILE Pos('  ', Result) > 0 DO
+            Result := StringReplace(Result, '  ', ' ', [rfReplaceAll]);
+END;
+
+FUNCTION ContarRegistrosMemo(LogMemo: TMemo): Integer;
+VAR
+      i: Integer;
+BEGIN
+      Result := 0;
+      IF Assigned(LogMemo) THEN BEGIN
+            FOR i := 0 TO LogMemo.Lines.Count - 1 DO BEGIN
+                  IF LogMemo.Lines[i].StartsWith('Registro:') THEN
+                        Inc(Result);
+            END;
       END;
 END;
 
